@@ -1,0 +1,80 @@
+{
+  "name": "@koumatsumoto/npm-package-template-2023",
+  "version": "1.0.0",
+  "description": "The project template to create new npm package using GitHub Packages registry",
+  "author": "Kou Matsumoto",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/koumatsumoto/npm-package-template-2023.git"
+  },
+  "homepage": "https://github.com/koumatsumoto/npm-package-template-2023#readme",
+  "bugs": {
+    "url": "https://github.com/koumatsumoto/npm-package-template-2023/issues"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=9.6.0"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.umd.cjs"
+    }
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "/dist"
+  ],
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/@koumatsumoto"
+  },
+  "scripts": {
+    "build": "tsc && vite build",
+    "format": "prettier --write --ignore-path .gitignore .",
+    "lint": "prettier --check --ignore-path .gitignore .",
+    "test": "vitest run",
+    "NOTE: `|| true` is used to resolve errors at npm publish": "ignore command errors to the bug of https://github.com/npm/cli/issues/3707",
+    "prepare": "husky install || true"
+  },
+  "keywords": [],
+  "license": "Apache License",
+  "devDependencies": {
+    "@commitlint/cli": "^17.6.6",
+    "@commitlint/config-conventional": "^17.6.6",
+    "@rollup/plugin-typescript": "^11.1.2",
+    "@trivago/prettier-plugin-sort-imports": "^4.1.1",
+    "@tsconfig/strictest": "^2.0.1",
+    "@types/node": "^20.4.2",
+    "husky": "^8.0.3",
+    "lint-staged": "^13.2.3",
+    "prettier": "^2.8.8",
+    "typescript": "^5.1.6",
+    "vite": "^4.4.4",
+    "vitest": "^0.33.0"
+  },
+  "prettier": {
+    "printWidth": 120,
+    "trailingComma": "all",
+    "importOrder": [
+      "^[./]"
+    ],
+    "importOrderCaseInsensitive": true
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  },
+  "lint-staged": {
+    "*.{ts,tsx,html,css,scss,json,yml,yaml,md}": [
+      "prettier --write"
+    ],
+    "*.{ts,tsx}": [
+      "bash -c tsc",
+      "vitest related --run"
+    ]
+  }
+}
