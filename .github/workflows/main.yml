@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+    branches: ["main", "develop"]
+    tags: ["v**"]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run lint
+      - run: npm run test
+      - run: npm run build
+      - uses: actions/cache/save@v3
+        with:
+          path: ./dist/
+          key: ${{ runner.os }}-${{ runner.arch }}-${{ github.sha }}
+
+  publish-develop:
+    if: github.ref_name == 'main' || github.ref_name == 'develop'
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+      - uses: actions/cache/restore@v3
+        with:
+          path: ./dist/
+          key: ${{ runner.os }}-${{ runner.arch }}-${{ github.sha }}
+          restore-keys: ${{ runner.os }}-${{ runner.arch }}-
+          fail-on-cache-miss: true
+
+      - uses: koumatsumoto/get-npm-package-info-action@v1
+        id: package_info
+
+      - uses: koumatsumoto/publish-github-packages-npm@v1
+        with:
+          auth_token: ${{ secrets.GITHUB_TOKEN }}
+          version: v${{ steps.package_info.outputs.package_version }}-dev-${{ steps.package_info.outputs.git_commit_hash_short }}
+
+  publish-production:
+    if: contains(github.ref, 'tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+      - uses: actions/cache/restore@v3
+        with:
+          path: ./dist/
+          key: ${{ runner.os }}-${{ runner.arch }}-${{ github.sha }}
+          restore-keys: ${{ runner.os }}-${{ runner.arch }}-
+          fail-on-cache-miss: true
+
+      - name: Trim v of version string
+        run: |
+          TAG=${{ github.ref_name }}
+          echo "version=${TAG#v}" >> $GITHUB_OUTPUT
+        id: get_version_string
+
+      - uses: koumatsumoto/publish-github-packages-npm@v1
+        with:
+          auth_token: ${{ secrets.GITHUB_TOKEN }}
+          version: ${{ steps.get_version_string.outputs.version }}
